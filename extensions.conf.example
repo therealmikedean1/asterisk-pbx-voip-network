@@ -1,0 +1,47 @@
+[default]
+exten => 101,1,NoOp(Calling extension 101)
+ same => n,Dial(PJSIP/101,30)
+ same => n,Hangup()
+
+exten => 102,1,NoOp(Calling extension 102)
+ same => n,Dial(PJSIP/102,30)
+ same => n,Hangup()
+
+; The Main IVR Entry Point (Dial 200)
+exten => 200,1,Answer()
+exten => 200,n,Wait(1)
+exten => 200,n,Goto(ivr-menu,s,1)
+
+
+[ivr-menu]
+; Play the audio file and wait for the user to press a key
+exten => s,1,Answer()
+exten => s,n,Background(ivr_menu)
+exten => s,n,WaitExten(10)
+
+; Press 1: Route to Networking Unit (Twinkle)
+exten => 1,1,Dial(PJSIP/101,30)
+exten => 1,n,Hangup()
+
+; Press 2: Route to Software Unit (MizuDroid)
+exten => 2,1,Dial(PJSIP/102,30)
+exten => 2,n,Hangup()
+
+; Press 3: Route to Hardware Unit Voicemail
+exten => 3,1,VoiceMail(300@default,u)
+exten => 3,n,Hangup()
+
+; Press 4: Route to Robotics Unit Voicemail
+exten => 4,1,VoiceMail(400@default,u)
+exten => 4,n,Hangup()
+
+; Press 9: Repeat the menu
+exten => 9,1,Goto(ivr-menu,s,1)
+
+; Error Handling: If they press a wrong key
+exten => i,1,Playback(invalid)
+exten => i,n,Goto(ivr-menu,s,1)
+
+; Error Handling: If they take too long to press a key
+exten => t,1,Playback(vm-goodbye)
+exten => t,n,Hangup()
